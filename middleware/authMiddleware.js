@@ -1,6 +1,6 @@
 import { supabase } from "../config/supabaseClient.js"
 
-export const checkAuth = async (req, res, next) => {
+export const requireAuth = async (req, res, next) => {
 	const authHeader = req.headers.authorization
 
 	if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -30,7 +30,7 @@ export const checkAuth = async (req, res, next) => {
 	}
 }
 
-export const checkAdmin = async (req, res, next) => {
+export const requireAdmin = async (req, res, next) => {
 	if (!req.user) {
 		return res.status(401).json({ error: "Autentikasi diperlukan." })
 	}
@@ -59,3 +59,6 @@ export const checkAdmin = async (req, res, next) => {
 			.json({ error: "Gagal memverifikasi peran pengguna." })
 	}
 }
+
+export const checkAuth = requireAuth;
+export const checkAdmin = requireAdmin;

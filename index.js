@@ -1,32 +1,30 @@
-import express from "express"
-import cors from "cors"
-import dotenv from "dotenv"
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import projectRoutes from './routes/projectRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
-import authRoutes from "./routes/authRoutes.js"
-import userRoutes from "./routes/userRoutes.js"
-import taskRoutes from "./routes/taskRoutes.js"
-import adminRoutes from "./routes/adminRoutes.js"
+dotenv.config();
 
-dotenv.config()
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-const app = express()
-const port = process.env.PORT || 3000
+app.use(cors());
+app.use(express.json());
 
-// Middleware
-app.use(cors())
-app.use(express.json())
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/admin', adminRoutes);
 
-app.get("/", (req, res) => {
-	res.send(
-		"API Server untuk Heritage Jakarta Volunteer Management sedang berjalan!"
-	)
-})
+app.get('/', (req, res) => {
+  res.send('Heritage Jakarta Volunteer API is running!');
+});
 
-app.use("/api/auth", authRoutes)
-app.use("/api/users", userRoutes)
-app.use("/api/tasks", taskRoutes)
-app.use("/api/admin", adminRoutes)
-
-app.listen(port, () => {
-	console.log(`Server berjalan di http://localhost:${port}`)
-})
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
