@@ -35,6 +35,7 @@ If you already have data in your database and want to add the new status columns
    - `status_project` column to the projects table (default: 'on_going')
    - Update the user creation trigger to include the new columns
 
+
 ## API Endpoints
 
 ### Authentication
