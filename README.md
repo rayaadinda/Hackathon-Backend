@@ -1,4 +1,4 @@
-# Heritage Jakarta Volunteer Management System
+# API Indonesia Heritage Society Volunteer Management System
 
 Backend API for managing volunteers and tasks for the Indonesian Heritage Society.
 
