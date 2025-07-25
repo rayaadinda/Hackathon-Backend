@@ -1,29 +1,36 @@
 import { Router } from "express"
-import { 
-  getAllProjects, 
-  getActiveProjects,
-  getProjectById, 
-  applyForProject, 
-  getRecommendedProjects,
-  getUserProjectApplications,
-  createProject,
-  updateProject,
-  deleteProject
+import {
+	getAllProjects,
+	getActiveProjects,
+	getProjectById,
+	applyForProject,
+	getRecommendedProjects,
+	getUserProjectApplications,
+	createProject,
+	updateProject,
+	deleteProject,
+	getRecommendedVolunteers,
 } from "../controllers/projectController.js"
 import { requireAuth, requireAdmin } from "../middleware/authMiddleware.js"
 
 const router = Router()
 
-router.get('/', getAllProjects)
-router.get('/active', getActiveProjects)
-router.get('/:id', getProjectById)
+router.get("/", getAllProjects)
+router.get("/active", getActiveProjects)
+router.get("/:id", getProjectById)
 
-router.post('/:id/apply', requireAuth, applyForProject)
-router.get('/recommended/me', requireAuth, getRecommendedProjects)
-router.get('/applications/me', requireAuth, getUserProjectApplications)
+router.post("/:id/apply", requireAuth, applyForProject)
+router.get("/recommended/me", requireAuth, getRecommendedProjects)
+router.get(
+	"/recommended/:id",
+	requireAuth,
+	requireAdmin,
+	getRecommendedVolunteers
+)
+router.get("/applications/me", requireAuth, getUserProjectApplications)
 
-router.post('/', requireAuth, requireAdmin, createProject)
-router.put('/:id', requireAuth, requireAdmin, updateProject)
-router.delete('/:id', requireAuth, requireAdmin, deleteProject)
+router.post("/", requireAuth, requireAdmin, createProject)
+router.put("/:id", requireAuth, requireAdmin, updateProject)
+router.delete("/:id", requireAuth, requireAdmin, deleteProject)
 
-export default router 
+export default router

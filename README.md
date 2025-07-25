@@ -61,6 +61,7 @@ If you already have data in your database and want to add the new status columns
 - `GET /api/projects/:id`: Get a specific project
 - `POST /api/projects/:id/apply`: Apply for a project (requires authentication)
 - `GET /api/projects/recommended/me`: Get recommended projects for the current user (requires authentication)
+- `GET /api/projects/recommended/:id`: Get recommended volunteers for a specific project (requires admin)
 - `GET /api/projects/applications/me`: Get user's project applications (requires authentication)
 - `POST /api/projects`: Create a new project (requires admin)
 - `PUT /api/projects/:id`: Update a project (requires admin)
