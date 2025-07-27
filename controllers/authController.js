@@ -51,27 +51,29 @@ export const login = async (req, res) => {
 			password,
 		})
 
-		console.log('Supabase login response:', { 
-			hasData: !!data, 
-			hasUser: !!data?.user, 
+		console.log("Supabase login response:", {
+			hasData: !!data,
+			hasUser: !!data?.user,
 			hasSession: !!data?.session,
 			hasAccessToken: !!data?.session?.access_token,
-			error: error?.message 
+			error: error?.message,
 		})
 
 		if (error) {
-			console.error('Login error:', error.message)
+			console.error("Login error:", error.message)
 			return res.status(401).json({ error: error.message })
 		}
 
 		// Check if session exists
 		if (!data || !data.session || !data.session.access_token) {
-			console.error('No session or access token in response:', {
+			console.error("No session or access token in response:", {
 				hasData: !!data,
 				hasSession: !!data?.session,
-				sessionKeys: data?.session ? Object.keys(data.session) : 'no session'
+				sessionKeys: data?.session ? Object.keys(data.session) : "no session",
 			})
-			return res.status(401).json({ error: "Login failed - no session created" })
+			return res
+				.status(401)
+				.json({ error: "Login failed - no session created" })
 		}
 
 		// Optimized: Only fetch essential user data
@@ -92,7 +94,7 @@ export const login = async (req, res) => {
 				refresh_token: data.session.refresh_token,
 				expires_in: data.session.expires_in,
 				expires_at: data.session.expires_at,
-				token_type: data.session.token_type || 'bearer'
+				token_type: data.session.token_type || "bearer",
 			},
 			user: {
 				id: data.user.id,
@@ -101,10 +103,10 @@ export const login = async (req, res) => {
 			},
 		}
 
-		console.log('Sending response:', {
+		console.log("Sending response:", {
 			hasAccessToken: !!responseData.access_token,
 			hasSession: !!responseData.session,
-			hasUser: !!responseData.user
+			hasUser: !!responseData.user,
 		})
 
 		// Return minimal response for faster performance
@@ -121,13 +123,13 @@ export const testAuth = async (req, res) => {
 		return res.status(200).json({
 			message: "Auth controller is working",
 			timestamp: new Date().toISOString(),
-			environment: process.env.NODE_ENV || 'development'
-		});
+			environment: process.env.NODE_ENV || "development",
+		})
 	} catch (error) {
-		console.error('Test auth error:', error);
-		return res.status(500).json({ error: 'Test failed' });
+		console.error("Test auth error:", error)
+		return res.status(500).json({ error: "Test failed" })
 	}
-};
+}
 
 export const logout = async (req, res) => {
 	try {

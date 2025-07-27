@@ -8,7 +8,11 @@ import userRoutes from "./routes/userRoutes.js"
 import projectRoutes from "./routes/projectRoutes.js"
 import taskRoutes from "./routes/taskRoutes.js"
 import adminRoutes from "./routes/adminRoutes.js"
-import { performanceMonitor, setCacheHeaders, setCompressionHeaders } from "./middleware/performance.js"
+import {
+	performanceMonitor,
+	setCacheHeaders,
+	setCompressionHeaders,
+} from "./middleware/performance.js"
 
 dotenv.config()
 
@@ -16,20 +20,20 @@ const app = express()
 const PORT = process.env.PORT || 3000
 
 // Trust proxy for production (Vercel, Heroku, etc.)
-app.set('trust proxy', 1)
+app.set("trust proxy", 1)
 
 // Rate limiting
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: process.env.NODE_ENV === 'production' ? 200 : 100, // Higher limit in production
+	max: process.env.NODE_ENV === "production" ? 200 : 100, // Higher limit in production
 	message: { error: "Too many requests, please try again later." },
 	standardHeaders: true,
 	legacyHeaders: false,
 	trustProxy: true, // Trust proxy headers for accurate IP detection
 	skip: (req) => {
 		// Skip rate limiting for health checks
-		return req.url === '/' || req.url === '/health'
-	}
+		return req.url === "/" || req.url === "/health"
+	},
 })
 
 // Performance and security middleware

@@ -7,12 +7,12 @@ const supabaseUrl = process.env.SUPABASE_URL
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
 
 // Log configuration status (without exposing keys)
-console.log('Supabase config:', {
+console.log("Supabase config:", {
 	hasUrl: !!supabaseUrl,
 	hasKey: !!supabaseAnonKey,
 	urlLength: supabaseUrl?.length || 0,
-	keyLength: supabaseAnonKey?.length || 0
-});
+	keyLength: supabaseAnonKey?.length || 0,
+})
 
 // Optimized Supabase client configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
