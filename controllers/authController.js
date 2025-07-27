@@ -83,33 +83,39 @@ export const login = async (req, res) => {
 			.eq("id", data.user.id)
 			.single()
 
-		// Prepare response with multiple fallbacks
-		const accessToken = data.session.access_token || data.session.token || null
+		// SECURITY: Set HTTP-only cookie with session token
+		const cookieOptions = {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'strict',
+			maxAge: data.session.expires_in * 1000, // Convert to milliseconds
+			path: '/'
+		}
+
+		// Set the access token as an HTTP-only cookie
+		res.cookie('sb-access-token', data.session.access_token, cookieOptions)
+		res.cookie('sb-refresh-token', data.session.refresh_token, cookieOptions)
+
+		// SECURE: Return only non-sensitive data
 		const responseData = {
 			message: "Login successful",
-			access_token: accessToken,
-			token: accessToken, // Keep both for compatibility
-			session: {
-				access_token: accessToken,
-				refresh_token: data.session.refresh_token,
-				expires_in: data.session.expires_in,
-				expires_at: data.session.expires_at,
-				token_type: data.session.token_type || "bearer",
-			},
 			user: {
 				id: data.user.id,
 				email: data.user.email,
 				role: profile?.role || "volunteer",
 			},
+			session: {
+				expires_at: data.session.expires_at,
+				expires_in: data.session.expires_in,
+			}
 		}
 
-		console.log("Sending response:", {
-			hasAccessToken: !!responseData.access_token,
-			hasSession: !!responseData.session,
+		console.log("Sending secure response:", {
 			hasUser: !!responseData.user,
+			cookiesSet: true,
 		})
 
-		// Return minimal response for faster performance
+		// Return secure response (no tokens in JSON)
 		return res.status(200).json(responseData)
 	} catch (error) {
 		console.error("Login error:", error)
@@ -133,18 +139,30 @@ export const testAuth = async (req, res) => {
 
 export const logout = async (req, res) => {
 	try {
-		const authHeader = req.headers.authorization
+		// Get token from cookie instead of Authorization header
+		const accessToken = req.cookies['sb-access-token']
 
-		if (!authHeader || !authHeader.startsWith("Bearer ")) {
-			return res.status(401).json({ error: "Token not provided" })
+		if (!accessToken) {
+			return res.status(401).json({ error: "No active session found" })
 		}
 
-		// Fast logout - just invalidate token
+		// Sign out from Supabase
 		const { error } = await supabase.auth.signOut()
 
 		if (error) {
-			return res.status(500).json({ error: error.message })
+			console.error("Supabase logout error:", error.message)
 		}
+
+		// Clear authentication cookies
+		const cookieOptions = {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'strict',
+			path: '/'
+		}
+
+		res.clearCookie('sb-access-token', cookieOptions)
+		res.clearCookie('sb-refresh-token', cookieOptions)
 
 		// Set cache headers for logout response
 		res.set("Cache-Control", "no-cache, no-store, must-revalidate")

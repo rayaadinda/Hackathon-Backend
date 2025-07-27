@@ -3,6 +3,7 @@ import cors from "cors"
 import dotenv from "dotenv"
 import compression from "compression"
 import rateLimit from "express-rate-limit"
+import cookieParser from "cookie-parser"
 import authRoutes from "../routes/authRoutes.js"
 import userRoutes from "../routes/userRoutes.js"
 import projectRoutes from "../routes/projectRoutes.js"
@@ -38,6 +39,7 @@ const limiter = rateLimit({
 app.use(setCompressionHeaders)
 app.use(limiter)
 app.use(compression()) // Compress responses
+app.use(cookieParser()) // Parse cookies securely
 app.use(
 	cors({
 		origin: process.env.FRONTEND_URL || "*",

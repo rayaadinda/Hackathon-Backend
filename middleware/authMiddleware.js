@@ -6,15 +6,14 @@ const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export const requireAuth = async (req, res, next) => {
 	try {
-		const authHeader = req.headers.authorization
+		// Get token from HTTP-only cookie instead of Authorization header
+		const token = req.cookies['sb-access-token']
 
-		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		if (!token) {
 			return res
 				.status(401)
-				.json({ error: "Access denied. Token not provided." })
+				.json({ error: "Access denied. No authentication token found." })
 		}
-
-		const token = authHeader.split(" ")[1]
 
 		// Check cache first
 		const cached = tokenCache.get(token)
@@ -31,6 +30,9 @@ export const requireAuth = async (req, res, next) => {
 
 		if (error || !user) {
 			tokenCache.delete(token) // Remove invalid token from cache
+			// Clear invalid cookies
+			res.clearCookie('sb-access-token')
+			res.clearCookie('sb-refresh-token')
 			return res.status(401).json({ error: "Invalid or expired token." })
 		}
 
