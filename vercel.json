@@ -1,23 +1,13 @@
 {
 	"version": 2,
-	"builds": [
-		{
-			"src": "index.js",
-			"use": "@vercel/node",
-			"config": {
-				"maxLambdaSize": "50mb",
-				"nodeVersion": "18.x"
-			}
+	"functions": {
+		"index.js": {
+			"runtime": "@vercel/node",
+			"maxDuration": 30,
+			"memory": 1024
 		}
-	],
+	},
 	"routes": [
-		{
-			"src": "/api/(.*)",
-			"dest": "/index.js",
-			"headers": {
-				"cache-control": "s-maxage=0"
-			}
-		},
 		{
 			"src": "/(.*)",
 			"dest": "/index.js"
@@ -25,12 +15,6 @@
 	],
 	"env": {
 		"NODE_ENV": "production"
-	},
-	"functions": {
-		"index.js": {
-			"maxDuration": 30,
-			"memory": 1024
-		}
 	},
 	"headers": [
 		{
