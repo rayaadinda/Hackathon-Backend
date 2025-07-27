@@ -55,6 +55,11 @@ export const login = async (req, res) => {
 			return res.status(401).json({ error: error.message })
 		}
 
+		// Check if session exists
+		if (!data.session || !data.session.access_token) {
+			return res.status(401).json({ error: "Login failed - no session created" })
+		}
+
 		// Optimized: Only fetch essential user data
 		const { data: profile } = await supabase
 			.from("profiles")
@@ -65,7 +70,9 @@ export const login = async (req, res) => {
 		// Return minimal response for faster performance
 		return res.status(200).json({
 			message: "Login successful",
-			token: data.session.access_token,
+			access_token: data.session.access_token,
+			token: data.session.access_token, // Keep both for compatibility
+			session: data.session,
 			user: {
 				id: data.user.id,
 				email: data.user.email,
