@@ -1,4 +1,4 @@
-# Heritage Jakarta Volunteer Management System
+# API Indonesia Heritage Society Volunteer Management System
 
 Backend API for managing volunteers and tasks for the Indonesian Heritage Society.
 
@@ -23,22 +23,6 @@ PORT=3000
 ```bash
 npm run dev
 ```
-
-## Database Setup
-
-### For New Installations
-
-Run the SQL commands in `schema_hierarchical.sql` in your Supabase SQL editor to set up the necessary tables with the hierarchical structure.
-
-### For Existing Installations
-
-If you already have data in your database and want to add the new status columns without losing data:
-
-1. Run the SQL commands in `migration_add_status_columns.sql` in your Supabase SQL editor
-2. This will add:
-   - `status_volunteer` column to the profiles table (default: 'open')
-   - `status_project` column to the projects table (default: 'on_going')
-   - Update the user creation trigger to include the new columns
 
 ## API Endpoints
 
