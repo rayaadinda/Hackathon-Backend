@@ -1,41 +1,72 @@
 import { supabase } from "../config/supabaseClient.js"
 
+// Optimized auth middleware with caching
+const tokenCache = new Map()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 export const requireAuth = async (req, res, next) => {
-	const authHeader = req.headers.authorization
-
-	if (!authHeader || !authHeader.startsWith("Bearer ")) {
-		return res
-			.status(401)
-			.json({ error: "Akses ditolak. Token tidak disediakan." })
-	}
-
-	const token = authHeader.split(" ")[1]
-
 	try {
+		const authHeader = req.headers.authorization
+
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
+			return res
+				.status(401)
+				.json({ error: "Access denied. Token not provided." })
+		}
+
+		const token = authHeader.split(" ")[1]
+
+		// Check cache first
+		const cached = tokenCache.get(token)
+		if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+			req.user = cached.user
+			return next()
+		}
+
+		// Verify token with Supabase
 		const {
 			data: { user },
 			error,
 		} = await supabase.auth.getUser(token)
 
 		if (error || !user) {
-			throw new Error(
-				error?.message || "Token tidak valid atau sudah kedaluwarsa."
-			)
+			tokenCache.delete(token) // Remove invalid token from cache
+			return res.status(401).json({ error: "Invalid or expired token." })
 		}
+
+		// Cache valid user
+		tokenCache.set(token, {
+			user: { id: user.id, email: user.email }, // Store minimal user data
+			timestamp: Date.now(),
+		})
 
 		req.user = user
 		next()
 	} catch (error) {
-		return res.status(401).json({ error: "Token tidak valid." })
+		console.error("Auth middleware error:", error)
+		return res.status(401).json({ error: "Invalid token." })
 	}
 }
 
-export const requireAdmin = async (req, res, next) => {
-	if (!req.user) {
-		return res.status(401).json({ error: "Autentikasi diperlukan." })
-	}
+// Role cache for admin verification
+const roleCache = new Map()
 
+export const requireAdmin = async (req, res, next) => {
 	try {
+		if (!req.user) {
+			return res.status(401).json({ error: "Authentication required." })
+		}
+
+		// Check role cache first
+		const cachedRole = roleCache.get(req.user.id)
+		if (cachedRole && Date.now() - cachedRole.timestamp < CACHE_TTL) {
+			if (cachedRole.role !== "admin") {
+				return res.status(403).json({ error: "Access denied. Admin only." })
+			}
+			return next()
+		}
+
+		// Fetch role from database
 		const { data: profile, error } = await supabase
 			.from("profiles")
 			.select("role")
@@ -43,22 +74,40 @@ export const requireAdmin = async (req, res, next) => {
 			.single()
 
 		if (error || !profile) {
-			return res.status(404).json({ error: "Profil pengguna tidak ditemukan." })
+			return res.status(404).json({ error: "User profile not found." })
 		}
 
+		// Cache the role
+		roleCache.set(req.user.id, {
+			role: profile.role,
+			timestamp: Date.now(),
+		})
+
 		if (profile.role !== "admin") {
-			return res
-				.status(403)
-				.json({ error: "Akses ditolak. Hanya admin yang diizinkan." })
+			return res.status(403).json({ error: "Access denied. Admin only." })
 		}
 
 		next()
 	} catch (error) {
-		return res
-			.status(500)
-			.json({ error: "Gagal memverifikasi peran pengguna." })
+		console.error("Admin middleware error:", error)
+		return res.status(500).json({ error: "Failed to verify user role." })
 	}
 }
 
-export const checkAuth = requireAuth;
-export const checkAdmin = requireAdmin;
+// Clear caches periodically to prevent memory leaks
+setInterval(() => {
+	const now = Date.now()
+	for (const [key, value] of tokenCache.entries()) {
+		if (now - value.timestamp > CACHE_TTL) {
+			tokenCache.delete(key)
+		}
+	}
+	for (const [key, value] of roleCache.entries()) {
+		if (now - value.timestamp > CACHE_TTL) {
+			roleCache.delete(key)
+		}
+	}
+}, CACHE_TTL)
+
+export const checkAuth = requireAuth
+export const checkAdmin = requireAdmin
