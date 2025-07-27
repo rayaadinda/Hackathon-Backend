@@ -1,19 +1,20 @@
-// Performance monitoring middleware - Simple and reliable
+// Performance monitoring middleware - Serverless compatible
 export const performanceMonitor = (req, res, next) => {
+	// Skip performance monitoring in production to avoid header issues
+	if (process.env.NODE_ENV === "production") {
+		return next()
+	}
+
 	const start = Date.now()
 
-	// Set the response time header immediately
-	res.locals.startTime = start
-
-	// Log completion when response finishes
+	// Log completion when response finishes (development only)
 	res.on("close", () => {
 		const duration = Date.now() - start
 
 		// Log slow requests (> 1 second)
 		if (duration > 1000) {
 			console.warn(`Slow request: ${req.method} ${req.url} - ${duration}ms`)
-		} else if (process.env.NODE_ENV !== "production") {
-			// Only log normal requests in development
+		} else {
 			console.log(`${req.method} ${req.url} - ${duration}ms`)
 		}
 	})

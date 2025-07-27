@@ -29,7 +29,7 @@ const limiter = rateLimit({
 	message: { error: "Too many requests, please try again later." },
 	standardHeaders: true,
 	legacyHeaders: false,
-	trustProxy: true, // Trust proxy headers for accurate IP detection
+	// Remove trustProxy option since we already set app.set("trust proxy", 1)
 	skip: (req) => {
 		// Skip rate limiting for health checks
 		return req.url === "/" || req.url === "/health"
@@ -37,7 +37,6 @@ const limiter = rateLimit({
 })
 
 // Performance and security middleware
-app.use(performanceMonitor)
 app.use(setCompressionHeaders)
 app.use(limiter)
 app.use(compression()) // Compress responses
@@ -49,6 +48,11 @@ app.use(
 )
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
+
+// Add performance monitoring last (development only)
+if (process.env.NODE_ENV !== "production") {
+	app.use(performanceMonitor)
+}
 
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
